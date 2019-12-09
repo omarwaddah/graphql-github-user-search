@@ -1,0 +1,55 @@
+<%#
+  GraphQL fragments are defined in the templates themselves.
+
+  All data being used directly in this template should also be reflected
+  statically in the fragment. And vice versa, all fields in the query fragment
+  should only be used directly in this template. You MUST keep static queries
+  and runtime usage in sync. Defining queries in the same file makes
+  this aspect easier to manage.
+%>
+<%graphql
+  # Fragments are parts of queries, they can't be executed themselves.
+  # This fragment is defined on the User type and is named "User". You can
+  # name the fragment whatever you'd like. Its the name that is exported as
+  # a Ruby constant, so it must start with a capital letter.
+  #
+  # Its exported as "Views::Repositories::Index::User". The module path to
+  # the tempate then the name of the fragment.
+  fragment User on User {
+    # Initially, fetch the first 10 repositories. We'll show a "load more"
+    # button to demostrate GraphQL connection cursors.
+    name
+    login
+    avatarUrl
+    repositories(first: 10) {
+      # The only data we're using directly in this template is the total number
+      # of repositories. Also note that its camelcase here.
+      totalCount
+
+      # Include data dependencies of app/views/repositories/_repositories.html.erb
+      # All renders in this template will map to a fragment spread to
+      # statically define the view composition relationship.
+      ...Views::Repositories::Repositories::RepositoryConnection
+    }
+  }
+%>
+
+<% user = Views::Repositories::Index::User.new(user) %>
+
+<div class="repositories">
+  <ul class="list-group">
+    <li class="list-group-item">
+      <h1><br/><span class="User-name" style="font-size: 26px; line-height: 30px;"><strong><%= user.name%></strong></span></h1>
+      <span class="header"><a itemprop="image" class="u-photo d-block position-relative" aria-hidden="true" href=<%= user.avatarUrl%>><img alt="" class="avatar width-full height-full rounded-2" src=<%= user.avatarUrl%> width="260" height="260"></a></span>
+      <%# NOTE: total_count is snake case here %>
+     <p> <strong><%= user.login%>'s repositories  </strong><span class="badge"><%= user.repositories.total_count %></span></p>
+    </li>
+
+    <%#
+      render repositories subview passing along user.repositories
+      See that Views::Repositories::Repositories::RepositoryConnection is
+      declared in our static fragment.
+    %>
+    <%= render "repositories/repositories", repositories: user.repositories %>
+  </ul>
+</div>

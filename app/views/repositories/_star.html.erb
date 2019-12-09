@@ -1,0 +1,16 @@
+<%graphql
+  fragment Repository on Repository {
+    id
+    stargazers {
+      totalCount
+    }
+  }
+%>
+<% repository = Views::Repositories::Star::Repository.new(repository) %>
+
+<span class="star-badge">
+  <%= repository.stargazers.total_count %>
+    <icon>
+      <span class="octicon octicon-star highlight"></span>
+    </icon>
+</span>
